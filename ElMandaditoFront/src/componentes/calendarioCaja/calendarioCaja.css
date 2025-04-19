@@ -1,0 +1,16 @@
+.tabla-caja {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 30px;
+}
+
+.tabla-caja th,
+.tabla-caja td {
+  border: 1px solid #ccc;
+  padding: 10px;
+  text-align: center;
+}
+
+.tabla-caja th {
+  background-color: #f0f0f0;
+}
