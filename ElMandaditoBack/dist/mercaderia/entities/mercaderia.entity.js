@@ -38,7 +38,7 @@ let Mercaderia = class Mercaderia {
 };
 exports.Mercaderia = Mercaderia;
 __decorate([
-    (0, typeorm_1.PrimaryGeneratedColumn)(),
+    (0, typeorm_1.PrimaryColumn)(),
     __metadata("design:type", String)
 ], Mercaderia.prototype, "codigo", void 0);
 __decorate([

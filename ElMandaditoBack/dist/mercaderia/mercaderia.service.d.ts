@@ -7,7 +7,7 @@ export declare class MercaderiaService {
     create(mercaderiaDto: MercaderiaDto): Promise<MercaderiaDto>;
     findAll(): Promise<MercaderiaDto[]>;
     findOne(id: string): Promise<MercaderiaDto>;
-    findOneByCodigo(codigo: string): Promise<Mercaderia | null>;
+    findOneByCodigo(codigo: string): Promise<Mercaderia>;
     update(id: string, mercaderiaDto: MercaderiaDto): Promise<MercaderiaDto>;
     remove(id: string): Promise<boolean>;
 }

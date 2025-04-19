@@ -16,44 +16,33 @@ const CobrarCliente = ({ handleBack, selectedCliente }) => {
     );
   };
 
-  const handleCobrar = async (valor) => {
-    if (!metodoPago) {
-      alert("Debe seleccionar un método de pago.");
-      return;
-    }
+  const realizarCobroTotal = async (valor) => {
+    const confirmar = window.confirm(
+      `¿Desea cobrar el total de $${valor} en ${metodoPago.toUpperCase()}?`
+    );
+    if (!confirmar) return;
 
-    if (valor <= 0) {
-      alert("El valor debe ser mayor que 0.");
-      return;
-    }
+    try {
+      const clienteID = selectedCliente.ClienteID;
 
-    if (valor === calcularTotal()) {
-      //  Cobro total
-      const confirmar = window.confirm(
-        `¿Desea cobrar el total de $${valor} en ${metodoPago.toUpperCase()}?`
+      // Eliminar todos los registros del cliente
+      await axios.delete(
+        `http://localhost:3000/cliente_mercaderia/eliminar/${clienteID}`
       );
-      if (!confirmar) return;
 
-      try {
-        const clienteID = selectedCliente.ClienteID;
+      // Registrar en caja
+      await procesarCaja(metodoPago, valor, obtenerFechaActual);
 
-        // Eliminar todos los registros del cliente
-        await axios.delete(
-          `http://localhost:3000/cliente_mercaderia/eliminar/${clienteID}`
-        );
-
-        alert(`Se cobraron $${valor} en ${metodoPago.toUpperCase()}`);
-        setDatosMercaderia([]);
-        setValorIngresado("");
-      } catch (error) {
-        console.error("Error al procesar el cobro total:", error);
-        alert("Hubo un error al procesar el cobro.");
-      }
-
-      return;
+      alert(`Se cobraron $${valor} en ${metodoPago.toUpperCase()}`);
+      setDatosMercaderia([]);
+      setValorIngresado("");
+    } catch (error) {
+      console.error("Error al procesar el cobro total:", error);
+      alert("Hubo un error al procesar el cobro.");
     }
+  };
 
-    // 💰 Cobro parcial
+  const realizarCobroParcial = async (valor) => {
     const disponibles = datosMercaderia.filter((m) =>
       productosSeleccionados.includes(m)
     );
@@ -62,9 +51,8 @@ const CobrarCliente = ({ handleBack, selectedCliente }) => {
     const seleccionParaCobrar = [];
     const idsClienteMercaderiaSeleccionados = [];
     const clienteID = selectedCliente.ClienteID;
-    const usadosPorCodigo = {}; // Para llevar el conteo por código
+    const usadosPorCodigo = {};
 
-    // Recorremos hasta que el acumulado sea menor o igual al valor
     let i = 0;
     for (; i < disponibles.length; i++) {
       const producto = disponibles[i];
@@ -74,9 +62,6 @@ const CobrarCliente = ({ handleBack, selectedCliente }) => {
         typeof producto.precio !== "number" ||
         !producto.codigo
       ) {
-        console.log(
-          `Skipping producto ${producto?.Nombre} debido a datos faltantes.`
-        );
         continue;
       }
 
@@ -114,8 +99,8 @@ const CobrarCliente = ({ handleBack, selectedCliente }) => {
       }
     }
 
-    // Vuelta extra para superar el valor si no lo alcanzamos exactamente
-    if (acumulado <= valor && i < disponibles.length) {
+    // Vuelta extra para cubrir diferencia si falta poco
+    if (acumulado < valor && i < disponibles.length) {
       const productoExtra = disponibles[i];
 
       if (
@@ -152,8 +137,6 @@ const CobrarCliente = ({ handleBack, selectedCliente }) => {
       }
     }
 
-    console.log("productos seleccionados:", seleccionParaCobrar);
-
     const diferencia = acumulado - valor;
 
     let mensaje = `Se han seleccionado ${seleccionParaCobrar.length} productos por un total de $${acumulado}.`;
@@ -162,64 +145,92 @@ const CobrarCliente = ({ handleBack, selectedCliente }) => {
     }
 
     const confirmar = window.confirm(mensaje);
-
-    if (confirmar) {
-      try {
-        for (let idEliminar of idsClienteMercaderiaSeleccionados) {
-          console.log(`Eliminando cliente_mercaderia con ID: ${idEliminar}`);
-          await axios.delete(
-            `http://localhost:3000/cliente_mercaderia/${idEliminar}`
-          );
-        }
-
-        setValorIngresado(""); // Limpiar
-      } catch (error) {
-        console.error("Error al procesar el cobro parcial:", error);
-        alert("Hubo un error al procesar el cobro.");
-      }
-    }
-
     if (!confirmar) return;
 
-    // Si hay diferencia, generamos crédito
+    try {
+      for (let idEliminar of idsClienteMercaderiaSeleccionados) {
+        await axios.delete(
+          `http://localhost:3000/cliente_mercaderia/${idEliminar}`
+        );
+      }
+
+      // Registrar en caja
+      await procesarCaja(metodoPago, valor, obtenerFechaActual);
+
+      setValorIngresado("");
+    } catch (error) {
+      console.error("Error al procesar el cobro parcial:", error);
+      alert("Hubo un error al procesar el cobro.");
+    }
+
     if (diferencia > 0) {
-      const clienteID = selectedCliente.ClienteID;
-
-      // Usamos la función obtenerFechaActual para obtener la fecha en formato YYYY-MM-DD
-      const fechaTexto = obtenerFechaActual(); // Ejemplo: '2025-04-17'
-
-      // Generamos el código de crédito con diferencia + fecha en formato YYYY-MM-DD
-      const fecha = obtenerFechaActual(); // Usamos el formato de la función proporcionada
-      let codigoCredito = `${diferencia}${fecha}`;
-
-      const nombreCredito = `Resto del pago efectuado el ${fechaTexto}`;
+      const fecha = obtenerFechaActual();
+      const codigoCredito = `${diferencia}${fecha}`;
+      const nombreCredito = `Resto del pago efectuado el ${fecha}`;
 
       try {
-        console.log("Generando crédito:", {
-          codigo: codigoCredito,
-          nombre: nombreCredito,
-          precio: diferencia,
-          fecha: fecha, // Usamos el formato YYYY-MM-DD aquí
-        });
+        await axios.get(
+          `http://localhost:3000/mercaderia/codigo/${codigoCredito}`
+        );
+        console.log(
+          `Ya existe una mercadería con el código ${codigoCredito}. No se creará otra.`
+        );
+      } catch (error) {
+        if (error.response && error.response.status === 404) {
+          try {
+            await axios.post("http://localhost:3000/mercaderia", {
+              codigo: codigoCredito,
+              Nombre: nombreCredito,
+              Precio: diferencia,
+            });
+            console.log("Nueva mercadería creada con éxito.");
+          } catch (postError) {
+            console.error("Error al crear mercadería:", postError);
+            alert("No se pudo registrar el crédito.");
+            return;
+          }
+        } else {
+          console.error("Error al verificar la existencia del crédito:", error);
+          alert("Hubo un error al verificar si el crédito ya existe.");
+          return;
+        }
+      }
 
-        // Crear el crédito en mercadería
-        await axios.post("http://localhost:3000/mercaderia", {
-          codigo: codigoCredito,
-          Nombre: nombreCredito,
-          Precio: diferencia,
-        });
-
-        // Asociarlo al cliente (registramos la fecha en la tabla cliente_mercaderia)
+      try {
         await axios.post("http://localhost:3000/cliente_mercaderia", {
           ClienteID: clienteID,
           codigo: codigoCredito,
-          fecha: fecha, // Usamos el formato YYYY-MM-DD aquí
+          fecha: fecha,
         });
-      } catch (error) {
-        console.error("Error al generar crédito:", error);
-        alert("Hubo un error al generar el crédito.");
+
+        await fetchData(); // Actualizar vista
+      } catch (vinculoError) {
+        console.error("Error al vincular crédito al cliente:", vinculoError);
+        alert("Error al asociar el crédito al cliente.");
       }
     }
+  };
+
+  const handleCobrar = async (valor) => {
+    if (!metodoPago) {
+      alert("Debe seleccionar un método de pago.");
+      return;
+    }
+
+    if (valor <= 0) {
+      alert("El valor debe ser mayor que 0.");
+      return;
+    }
+
+    if (valor === calcularTotal()) {
+      await realizarCobroTotal(valor);
+    } else {
+      await realizarCobroParcial(valor);
+    }
+
+    setProductosSeleccionados([]);
+    setValorIngresado("");
+    setMetodoPago("");
   };
 
   const fetchData = async () => {
@@ -296,19 +307,7 @@ const CobrarCliente = ({ handleBack, selectedCliente }) => {
           <button
             type="button"
             disabled={calcularTotal() === 0}
-            onClick={() => {
-              if (!metodoPago) {
-                alert(
-                  "Por favor, seleccione un método de pago antes de cobrar."
-                );
-                return;
-              }
-
-              handleCobrar(calcularTotal());
-              setProductosSeleccionados([]);
-              setValorIngresado("");
-              setMetodoPago(""); // Opcional: limpia selección de método
-            }}
+            onClick={() => handleCobrar(calcularTotal())}
           >
             Cobrar total: $ {calcularTotal()}
           </button>
@@ -328,23 +327,18 @@ const CobrarCliente = ({ handleBack, selectedCliente }) => {
             type="button"
             disabled={!valorIngresado}
             onClick={() => {
+              const valor = parseFloat(valorIngresado);
               if (!metodoPago) {
                 alert(
                   "Por favor, seleccione un método de pago antes de cobrar."
                 );
                 return;
               }
-
-              const valor = parseFloat(valorIngresado);
               if (valor > calcularTotal()) {
                 alert("El valor ingresado es mayor que la deuda total.");
                 return;
               }
-
               handleCobrar(valor);
-              setProductosSeleccionados([]);
-              setValorIngresado("");
-              setMetodoPago("");
             }}
           >
             Cobrar: $ {valorIngresado || 0}

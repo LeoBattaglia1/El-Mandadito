@@ -109,6 +109,10 @@ const Ventas = ({ handleBackInicio }) => {
     }
   }, [busquedaNombre, todosLosProductos, mostrarSugerencias]);
 
+  const handleFiadoClick = () => {
+    setMostrarClientes((prev) => !prev);
+  };
+
   //ingreso de precio y guarda el precio con un id igual al valor
   const handleKeyPress = (e) => {
     if (e.key === "Enter" && !isNaN(parseFloat(precioIngresado))) {
@@ -199,7 +203,7 @@ const Ventas = ({ handleBackInicio }) => {
   const handleClienteSeleccionado = (id) => {
     setClienteSeleccionadoId(id);
   };
-
+  //guarda en cliete_mercaderia la mercaderia del cliente fiado seleccionado///
   const handleGuardarClick = async () => {
     if (clienteSeleccionadoId !== null && productosSeleccionados.length > 0) {
       try {
@@ -359,14 +363,18 @@ const Ventas = ({ handleBackInicio }) => {
           onBlur={handleInputBlur}
         />
 
-        {/* Sugerencias por nombre */}
         {sugerenciasNombres.length > 0 && (
           <ul className="sugerencias-nombres">
-            {sugerenciasNombres.map((nombre, index) => (
-              <li key={index} onClick={() => handleClickSugerencia(nombre)}>
-                {nombre}
-              </li>
-            ))}
+            {sugerenciasNombres
+              .filter(
+                (nombre) =>
+                  !nombre.startsWith("Resto del pago") && nombre !== "-"
+              ) // Filtra los registros no deseados
+              .map((nombre, index) => (
+                <li key={index} onClick={() => handleClickSugerencia(nombre)}>
+                  {nombre}
+                </li>
+              ))}
           </ul>
         )}
 
@@ -451,7 +459,7 @@ const Ventas = ({ handleBackInicio }) => {
           </button>
           <button
             type="button"
-            onClick={() => setMostrarClientes(true)}
+            onClick={handleFiadoClick}
             disabled={calcularTotal() === 0}
           >
             Fiado
@@ -463,26 +471,30 @@ const Ventas = ({ handleBackInicio }) => {
       {mostrarClientes && (
         <div className="tabla-clientes">
           <h2>Lista de Clientes</h2>
+
           <table>
             <tbody>
-              {clientes.map((cliente) => (
-                <tr key={cliente.ClienteID}>
-                  <td>
-                    <input
-                      type="radio"
-                      name="clienteRadio"
-                      value={cliente.ClienteID}
-                      checked={clienteSeleccionadoId === cliente.ClienteID}
-                      onChange={() =>
-                        handleClienteSeleccionado(cliente.ClienteID)
-                      }
-                    />
-                    {cliente.Nombre}
-                  </td>
-                </tr>
-              ))}
+              {[...clientes]
+                .sort((a, b) => a.Nombre.localeCompare(b.Nombre))
+                .map((cliente) => (
+                  <tr key={cliente.ClienteID}>
+                    <td>
+                      <input
+                        type="radio"
+                        name="clienteRadio"
+                        value={cliente.ClienteID}
+                        checked={clienteSeleccionadoId === cliente.ClienteID}
+                        onChange={() =>
+                          handleClienteSeleccionado(cliente.ClienteID)
+                        }
+                      />
+                      {cliente.Nombre}
+                    </td>
+                  </tr>
+                ))}
             </tbody>
           </table>
+
           <button type="button" onClick={handleGuardarClick}>
             Guardar
           </button>

@@ -27,10 +27,8 @@ let MercaderiaController = class MercaderiaController {
     async findAll() {
         return this.mercaderiaService.findAll();
     }
-    async findOne(id) {
-        return this.mercaderiaService.findOne(id);
-    }
     async getMercaderiaByCodigo(codigo) {
+        console.log('📦 Código recibido en ruta:', codigo);
         return this.mercaderiaService.findOneByCodigo(codigo);
     }
     async update(id, mercaderiaDto) {
@@ -55,14 +53,7 @@ __decorate([
     __metadata("design:returntype", Promise)
 ], MercaderiaController.prototype, "findAll", null);
 __decorate([
-    (0, common_1.Get)(':id'),
-    __param(0, (0, common_1.Param)('id')),
-    __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String]),
-    __metadata("design:returntype", Promise)
-], MercaderiaController.prototype, "findOne", null);
-__decorate([
-    (0, common_1.Get)(':codigo'),
+    (0, common_1.Get)('codigo/:codigo'),
     __param(0, (0, common_1.Param)('codigo')),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [String]),

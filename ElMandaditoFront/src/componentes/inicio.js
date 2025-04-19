@@ -1,29 +1,24 @@
 import React, { useState, useEffect } from "react";
+import { FaCalendarAlt, FaClock } from "react-icons/fa";
 import "./inicio.css";
 
 const Inicio = ({ mostrar }) => {
-  const [fechaHoraActual, setFechaHoraActual] = useState("");
+  const [horaActual, setHoraActual] = useState("");
   const [mostrarModal, setMostrarModal] = useState(false);
   const [inputPassword, setInputPassword] = useState("");
   const [errorPassword, setErrorPassword] = useState("");
 
   useEffect(() => {
-    const obtenerFechaHoraActual = () => {
+    const obtenerHora = () => {
       const ahora = new Date();
-      const opciones = {
-        weekday: "long",
-        year: "numeric",
-        month: "long",
-        day: "numeric",
-        hour: "numeric",
-        minute: "numeric",
-        second: "numeric",
-      };
-      return ahora.toLocaleDateString(undefined, opciones);
+      return ahora.toLocaleTimeString("es-AR", {
+        hour: "2-digit",
+        minute: "2-digit",
+      });
     };
 
     const intervalo = setInterval(() => {
-      setFechaHoraActual(obtenerFechaHoraActual());
+      setHoraActual(obtenerHora());
     }, 1000);
 
     return () => clearInterval(intervalo);
@@ -45,26 +40,43 @@ const Inicio = ({ mostrar }) => {
   };
 
   return (
-    <div className="column">
-      <button onClick={() => mostrar("venta")} className="buttonVenta">
-        Venta
-      </button>
-      <button onClick={() => mostrar("clientes")} className="buttonClientes">
-        Clientes
-      </button>
-      <button
-        onClick={() => mostrar("mercaderia")}
-        className="buttonMercaderia"
-      >
-        Mercadería
-      </button>
-      <div className="informacion-container">
-        <p>{fechaHoraActual}</p>
-
-        <button className="buttonInformacion" onClick={manejarClickCaja}>
-          CAJA
+    <div className="inicio-container">
+      <div className="column izquierda">
+        <button onClick={() => mostrar("venta")} className="buttonVenta">
+          Venta
+        </button>
+        <button onClick={() => mostrar("clientes")} className="buttonClientes">
+          Clientes
+        </button>
+        <button
+          onClick={() => mostrar("mercaderia")}
+          className="buttonMercaderia"
+        >
+          Mercadería
         </button>
       </div>
+
+      <div className="column derecha">
+        <div className="calendarioGrande">
+          <FaCalendarAlt size={36} style={{ marginRight: "10px" }} />
+          <span className="textoCalendario">
+            {new Date().toLocaleDateString("es-AR", {
+              weekday: "long",
+              year: "numeric",
+              month: "long",
+              day: "numeric",
+            })}
+          </span>
+        </div>
+        <div className="relojGrande">
+          <FaClock size={36} style={{ marginRight: "10px" }} />
+          <span className="textoReloj">{horaActual}</span>
+        </div>
+      </div>
+
+      <button className="buttonInformacion" onClick={manejarClickCaja}>
+        CAJA
+      </button>
 
       {mostrarModal && (
         <div className="modal-password">

@@ -48,7 +48,11 @@ let MercaderiaService = class MercaderiaService {
         return mercaderia;
     }
     async findOneByCodigo(codigo) {
-        return this.mercaderiaRepository.findOne({ where: { codigo } });
+        const item = await this.mercaderiaRepository.findOne({ where: { codigo } });
+        if (!item) {
+            throw new common_1.NotFoundException(`Mercadería con código ${codigo} no encontrada`);
+        }
+        return item;
     }
     async update(id, mercaderiaDto) {
         const mercaderia = await this.mercaderiaRepository.findOne({

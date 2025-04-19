@@ -1,9 +1,9 @@
-import { Entity, PrimaryGeneratedColumn, Column, OneToMany } from 'typeorm';
+import { Entity, PrimaryColumn, Column, OneToMany } from 'typeorm';
 import { ClienteMercaderia } from '../../cliente_mercaderia/entities/cliente_mercaderia.entity';
 
 @Entity()
 export class Mercaderia {
-  @PrimaryGeneratedColumn()
+  @PrimaryColumn()
   codigo: string;
 
   @Column()

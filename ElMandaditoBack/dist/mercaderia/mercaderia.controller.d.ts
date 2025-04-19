@@ -5,8 +5,7 @@ export declare class MercaderiaController {
     constructor(mercaderiaService: MercaderiaService);
     create(mercaderiaDto: MercaderiaDto): Promise<MercaderiaDto>;
     findAll(): Promise<MercaderiaDto[]>;
-    findOne(id: string): Promise<MercaderiaDto>;
-    getMercaderiaByCodigo(codigo: string): Promise<import("./entities/mercaderia.entity").Mercaderia | null>;
+    getMercaderiaByCodigo(codigo: string): Promise<import("./entities/mercaderia.entity").Mercaderia>;
     update(id: string, mercaderiaDto: MercaderiaDto): Promise<MercaderiaDto>;
     remove(id: string): Promise<boolean>;
 }

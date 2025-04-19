@@ -148,18 +148,20 @@ const Mercaderia = ({ handleBackInicio, mostrar, handleSelectMercaderia }) => {
           </tr>
         </thead>
         <tbody>
-          {handleBuscarProducto().map((producto, index) => (
-            <tr
-              key={producto.codigo}
-              className={`${
-                producto === productoSeleccionado ? "selected" : ""
-              } ${index % 2 === 0 ? "even" : ""}`}
-              onClick={() => handleSelectFila(producto)}
-            >
-              <td>{producto.Nombre}</td>
-              <td>$ {producto.Precio}</td>
-            </tr>
-          ))}
+          {handleBuscarProducto()
+            .sort((a, b) => a.Nombre.localeCompare(b.Nombre)) // Orden alfabético por nombre
+            .map((producto, index) => (
+              <tr
+                key={producto.codigo}
+                className={`${
+                  producto === productoSeleccionado ? "selected" : ""
+                } ${index % 2 === 0 ? "even" : ""}`}
+                onClick={() => handleSelectFila(producto)}
+              >
+                <td>{producto.Nombre}</td>
+                <td>$ {producto.Precio}</td>
+              </tr>
+            ))}
         </tbody>
       </table>
     </div>

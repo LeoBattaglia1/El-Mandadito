@@ -25,13 +25,9 @@ export class MercaderiaController {
     return this.mercaderiaService.findAll();
   }
 
-  @Get(':id')
-  async findOne(@Param('id') id: string): Promise<MercaderiaDto> {
-    return this.mercaderiaService.findOne(id);
-  }
-
-  @Get(':codigo')
+  @Get('codigo/:codigo')
   async getMercaderiaByCodigo(@Param('codigo') codigo: string) {
+    console.log('📦 Código recibido en ruta:', codigo);
     return this.mercaderiaService.findOneByCodigo(codigo);
   }
 

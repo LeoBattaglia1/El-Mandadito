@@ -130,22 +130,24 @@ const Clientes = ({ handleBackInicio, mostrar, handleSelectCliente }) => {
           </tr>
         </thead>
         <tbody>
-          {clientes.map((cliente, index) => (
-            <tr
-              key={cliente.ClienteID}
-              className={`${
-                filaSeleccionada === cliente.ClienteID ? "selected" : ""
-              } ${index % 2 === 0 ? "even" : ""}`}
-              onClick={() => {
-                handleSelectFila(cliente.ClienteID);
-                handleSelectCliente(cliente);
-              }}
-            >
-              <td>{cliente.Nombre}</td>
-              <td>{cliente.Telefono}</td>
-              <td>{cliente.Direccion}</td>
-            </tr>
-          ))}
+          {[...clientes] // Hacemos una copia para no mutar el array original
+            .sort((a, b) => a.Nombre.localeCompare(b.Nombre)) // Orden alfabético
+            .map((cliente, index) => (
+              <tr
+                key={cliente.ClienteID}
+                className={`${
+                  filaSeleccionada === cliente.ClienteID ? "selected" : ""
+                } ${index % 2 === 0 ? "even" : ""}`}
+                onClick={() => {
+                  handleSelectFila(cliente.ClienteID);
+                  handleSelectCliente(cliente);
+                }}
+              >
+                <td>{cliente.Nombre}</td>
+                <td>{cliente.Telefono}</td>
+                <td>{cliente.Direccion}</td>
+              </tr>
+            ))}
         </tbody>
       </table>
     </div>

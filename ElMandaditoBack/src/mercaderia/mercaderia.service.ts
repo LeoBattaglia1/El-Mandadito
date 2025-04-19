@@ -52,7 +52,13 @@ export class MercaderiaService {
   }
 
   async findOneByCodigo(codigo: string) {
-    return this.mercaderiaRepository.findOne({ where: { codigo } });
+    const item = await this.mercaderiaRepository.findOne({ where: { codigo } });
+    if (!item) {
+      throw new NotFoundException(
+        `Mercadería con código ${codigo} no encontrada`,
+      );
+    }
+    return item;
   }
 
   async update(
