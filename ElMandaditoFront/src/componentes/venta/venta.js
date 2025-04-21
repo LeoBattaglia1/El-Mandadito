@@ -43,9 +43,8 @@ const Ventas = ({ handleBackInicio }) => {
     const fetchData = async () => {
       try {
         const response = await fetch(
-          `http://localhost:3000/mercaderia/${busquedaCodigo}`
+          `http://localhost:3000/mercaderia/codigo/${busquedaCodigo}`
         );
-
         if (response.ok) {
           const producto = await response.json();
           // Agregar el producto seleccionado a la lista de productos

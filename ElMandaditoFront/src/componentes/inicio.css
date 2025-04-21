@@ -31,40 +31,52 @@
   align-items: flex-start;
 }
 
-.relojGrande,
-.calendarioGrande {
-  display: flex;
-  align-items: center;
-  font-size: 2em;
+.icono-boton {
+  width: 230px;
+  height: auto;
+  cursor: pointer;
+  border-radius: 20px;
 }
 
 .buttonVenta,
 .buttonClientes,
 .buttonMercaderia {
-  padding: 20px 30px;
-  font-size: 1.3em;
   border: none;
   border-radius: 10px;
-  background-color: #6a0dad;
+  background-color: white;
   color: white;
   cursor: pointer;
   transition: transform 0.3s ease, background-color 0.3s ease;
-  width: 90%;
-  height: 50%;
+  margin: 0px;
+  padding: 0%;
 }
 
-.buttonVenta:hover,
-.buttonClientes:hover,
-.buttonMercaderia:hover,
-.buttonInformacion:hover {
-  background-color: #4b0082;
-  transform: scale(1.1);
+.buttonVenta :hover,
+.buttonClientes :hover,
+.buttonMercaderia :hover {
+  transform: scale(1.05);
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.4);
 }
 
 .buttonInformacion {
   position: absolute;
   bottom: 30px;
   right: 30px;
+  background-color: #e53935; /* rojo fuerte */
+  color: white;
+  border: none;
+  padding: 12px 20px;
+  border-radius: 10px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+  cursor: pointer;
+  font-weight: bold;
+  transition: all 0.3s ease;
+}
+
+.buttonInformacion:hover {
+  background-color: #c62828; /* rojo más oscuro */
+  transform: scale(1.05);
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.4);
 }
 
 @keyframes fadeInScale {
@@ -148,18 +160,21 @@
 
 /* Nuevo: estilo compacto para react-calendar */
 .react-calendar {
-  width: 280px;
+  width: 300px;
   max-width: 100%;
   background-color: #fff;
   border: 1px solid #ccc;
   border-radius: 10px;
   font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
-  font-size: 1rem;
+  font-size: 15px;
   box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
-  padding: 10px;
+  padding: 0px;
 }
 
 /* Ajustes visuales del calendario */
+.relojGrande {
+  margin-left: 60px;
+}
 .react-calendar__tile {
   padding: 8px 0;
 }
@@ -178,8 +193,8 @@
 
 /* Nuevo: estilo para el reloj */
 .relojGrande .react-clock {
-  width: 150px;
-  height: 150px;
+  width: 10px;
+  height: 100px;
 }
 
 .react-clock__face {

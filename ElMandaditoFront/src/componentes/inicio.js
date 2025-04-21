@@ -3,6 +3,10 @@ import Clock from "react-clock";
 import Calendar from "react-calendar";
 import "react-clock/dist/Clock.css";
 import "react-calendar/dist/Calendar.css";
+import ventaImg from "../imagenes/venta .png";
+import clientesImg from "../imagenes/clientes.png";
+/* import mercaderiaImg from "../imagenes/mercaderia.png";
+ */
 import "./inicio.css";
 
 const Inicio = ({ mostrar }) => {
@@ -38,25 +42,25 @@ const Inicio = ({ mostrar }) => {
     <div className="inicio-container">
       <div className="column izquierda">
         <button onClick={() => mostrar("venta")} className="buttonVenta">
-          Venta
+          <img src={ventaImg} alt="Venta" className="icono-boton" />
         </button>
         <button onClick={() => mostrar("clientes")} className="buttonClientes">
-          Clientes
+          <img src={clientesImg} alt="Clientes" className="icono-boton" />
         </button>
         <button
           onClick={() => mostrar("mercaderia")}
           className="buttonMercaderia"
         >
-          Mercadería
+          <img src={ventaImg} alt="Mercadería" className="icono-boton" />
         </button>
       </div>
 
       <div className="column derecha">
-        <div className="calendarioGrande">
-          <Calendar value={horaActual} />
-        </div>
         <div className="relojGrande">
           <Clock value={horaActual} />
+        </div>
+        <div className="calendarioGrande">
+          <Calendar value={horaActual} />
         </div>
       </div>
 
