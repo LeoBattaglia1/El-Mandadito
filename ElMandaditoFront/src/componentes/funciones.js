@@ -66,3 +66,89 @@ async function crearNuevoRegistro(fecha, tipoPago, monto) {
     body: JSON.stringify({ fecha, tipoPago, monto }),
   });
 }
+
+// funciones para actualizar stock
+
+/**
+ * Para cada producto vendido, busca su stock actual,
+ * calcula el nuevo stock (no menor a 0) y lo actualiza vía API.
+ *
+ * @param {Array<{ codigo: string, cantidad: number|string }>} productosVendidos
+ */
+export async function actualizarStockDespuesVenta(productosVendidos) {
+  try {
+    for (const producto of productosVendidos) {
+      const { codigo, cantidad } = producto;
+      console.log(
+        `\n— Procesando venta de código: ${codigo}, cantidad vendida (raw):`,
+        cantidad
+      );
+
+      // 1) Obtener mercadería por código
+      const getRes = await fetch(
+        `http://localhost:3000/mercaderia/codigo/${codigo}`
+      );
+      if (!getRes.ok) {
+        console.warn(
+          `⚠️ No se pudo obtener mercadería ${codigo}:`,
+          getRes.status
+        );
+        continue;
+      }
+      const data = await getRes.json();
+      console.log(`📦 Datos actuales del producto:`, data);
+
+      // 2) Convertir cantidad a número
+      const cantidadNum = Number(producto.cantidad);
+
+      if (isNaN(cantidadNum) || cantidadNum <= 0) {
+        console.warn(`⚠️ Cantidad inválida para ${codigo}:`, producto.cantidad);
+        continue;
+      }
+
+      // 3) Calcular nuevo stock
+      const stockActual = Number(data.stock) || 0;
+      let nuevoStock = stockActual - cantidadNum;
+
+      // Asegurarse de que el stock no sea negativo
+      if (nuevoStock < 0) {
+        nuevoStock = 0;
+      }
+
+      console.log(
+        `🔢 Stock actual: ${stockActual}, vendida: ${cantidadNum}, nuevoStock: ${nuevoStock}`
+      );
+
+      // 4) Hacer PUT al controlador usando el código como ID
+      const updateRes = await fetch(
+        `http://localhost:3000/mercaderia/${codigo}`,
+        {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            // mantenemos todos los campos necesarios
+            codigo: data.codigo,
+            Nombre: data.Nombre,
+            Precio: data.Precio,
+            stock: nuevoStock,
+          }),
+        }
+      );
+      if (!updateRes.ok) {
+        console.error(
+          `❌ Error al actualizar stock de ${codigo}:`,
+          updateRes.status,
+          await updateRes.text()
+        );
+        continue;
+      }
+      const updated = await updateRes.json();
+      console.log(
+        `✅ Stock de ${codigo} actualizado exitosamente:`,
+        updated.stock
+      );
+    }
+  } catch (err) {
+    console.error("💥 Error en actualizarStockDespuesVenta:", err);
+  }
+}

@@ -19,8 +19,8 @@ let ClienteMercaderiaController = class ClienteMercaderiaController {
     constructor(clienteMercaderiaService) {
         this.clienteMercaderiaService = clienteMercaderiaService;
     }
-    async create(clienteID, codigo, fecha) {
-        return this.clienteMercaderiaService.create(clienteID, codigo, fecha);
+    async create(clienteID, codigo, cantidad, fecha) {
+        return this.clienteMercaderiaService.create(clienteID, codigo, cantidad, fecha);
     }
     findAll() {
         return this.clienteMercaderiaService.findAll();
@@ -55,9 +55,10 @@ __decorate([
     (0, common_1.Post)(),
     __param(0, (0, common_1.Body)('ClienteID')),
     __param(1, (0, common_1.Body)('codigo')),
-    __param(2, (0, common_1.Body)('fecha')),
+    __param(2, (0, common_1.Body)('cantidad')),
+    __param(3, (0, common_1.Body)('fecha')),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Number, String, Date]),
+    __metadata("design:paramtypes", [Number, String, Number, Date]),
     __metadata("design:returntype", Promise)
 ], ClienteMercaderiaController.prototype, "create", null);
 __decorate([

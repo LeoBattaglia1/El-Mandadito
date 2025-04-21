@@ -23,11 +23,12 @@ let ClienteMercaderiaService = class ClienteMercaderiaService {
     constructor(clienteMercaderiaRepository) {
         this.clienteMercaderiaRepository = clienteMercaderiaRepository;
     }
-    async create(clienteID, codigo, fecha) {
+    async create(clienteID, codigo, cantidad, fecha) {
         const clienteMercaderia = this.clienteMercaderiaRepository.create({
             cliente: { ClienteID: clienteID },
-            mercaderia: { codigo: codigo },
-            fecha: fecha,
+            mercaderia: { codigo },
+            cantidad,
+            fecha,
         });
         return await this.clienteMercaderiaRepository.save(clienteMercaderia);
     }
@@ -45,6 +46,7 @@ let ClienteMercaderiaService = class ClienteMercaderiaService {
                 Nombre: mercaderia?.Nombre || 'Sin nombre',
                 precio: mercaderia?.Precio || 0,
                 fecha: clienteMercaderia.fecha,
+                cantidad: clienteMercaderia.cantidad,
                 codigo: mercaderia?.codigo || '',
             };
         });

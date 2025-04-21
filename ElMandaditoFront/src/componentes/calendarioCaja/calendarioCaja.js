@@ -104,7 +104,7 @@ const CalendarioCaja = ({ handleBackInicio }) => {
             const total = (caja.efectivo || 0) + (caja.cuenta_dni || 0);
             return (
               <tr key={index}>
-                <td>{moment(caja.fecha).format("YYYY-MM-DD")}</td>
+                <td>{moment(caja.fecha).format("DD-MM-YYYY")}</td>
                 <td>${caja.efectivo || 0}</td>
                 <td>${caja.cuenta_dni || 0}</td>
                 <td>

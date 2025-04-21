@@ -17,14 +17,15 @@ export class ClienteMercaderiaService {
   async create(
     clienteID: number,
     codigo: string,
+    cantidad: number,
     fecha: Date,
   ): Promise<ClienteMercaderia> {
     const clienteMercaderia = this.clienteMercaderiaRepository.create({
       cliente: { ClienteID: clienteID },
-      mercaderia: { codigo: codigo },
-      fecha: fecha,
+      mercaderia: { codigo },
+      cantidad,
+      fecha,
     });
-
     return await this.clienteMercaderiaRepository.save(clienteMercaderia);
   }
 
@@ -46,6 +47,7 @@ export class ClienteMercaderiaService {
         Nombre: mercaderia?.Nombre || 'Sin nombre',
         precio: mercaderia?.Precio || 0,
         fecha: clienteMercaderia.fecha,
+        cantidad: clienteMercaderia.cantidad,
         codigo: mercaderia?.codigo || '',
       };
     });

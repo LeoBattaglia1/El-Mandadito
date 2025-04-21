@@ -6,6 +6,7 @@ const CambiarPrecio = ({ handleBackMercaderia, selectedMercaderia }) => {
     codigo: "",
     Nombre: "",
     Precio: 0,
+    stock: 0, // Agregamos el campo stock
   });
 
   const [alerta, setAlerta] = useState(null);
@@ -16,6 +17,7 @@ const CambiarPrecio = ({ handleBackMercaderia, selectedMercaderia }) => {
       codigo: selectedMercaderia.codigo || "",
       Nombre: selectedMercaderia.Nombre || "",
       Precio: selectedMercaderia.Precio || 0,
+      stock: selectedMercaderia.stock || 0, // Aseguramos que se traiga el stock
     });
   }, [selectedMercaderia]);
 
@@ -40,6 +42,7 @@ const CambiarPrecio = ({ handleBackMercaderia, selectedMercaderia }) => {
           body: JSON.stringify({
             Nombre: producto.Nombre,
             Precio: producto.Precio,
+            stock: producto.stock, // Incluimos el stock en la actualización
           }),
         }
       );
@@ -57,7 +60,7 @@ const CambiarPrecio = ({ handleBackMercaderia, selectedMercaderia }) => {
       setTimeout(() => {
         setAlerta(null);
         handleBackMercaderia();
-      }, 2000);
+      }, 1000);
     } catch (error) {
       console.error("Error durante la solicitud:", error);
     }
@@ -89,6 +92,18 @@ const CambiarPrecio = ({ handleBackMercaderia, selectedMercaderia }) => {
           />
         </label>
         <br />
+        <label>
+          Stock:
+          <input
+            type="number"
+            name="stock"
+            value={producto.stock}
+            onChange={handleChange}
+            required
+            min="0" // Aseguramos que no sea negativo
+          />
+        </label>
+        <br />
 
         {/* Alerta visual debajo de los inputs */}
         {alerta && (
@@ -98,10 +113,10 @@ const CambiarPrecio = ({ handleBackMercaderia, selectedMercaderia }) => {
         )}
 
         <div className="button-container">
-          <button type="submit">Guardar Cambios</button>
           <button type="button" onClick={handleBackMercaderia}>
-            Volver
+            Cancelar
           </button>
+          <button type="submit">Guardar Cambios</button>
         </div>
       </form>
     </div>

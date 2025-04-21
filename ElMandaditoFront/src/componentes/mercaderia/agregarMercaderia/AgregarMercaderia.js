@@ -6,15 +6,23 @@ const AgregarMercaderia = ({ handleBackMercaderia }) => {
     codigo: "",
     Nombre: "",
     Precio: "",
+    stock: "", // Mantener vacío al principio
   });
 
-  const [mensaje, setMensaje] = useState(null); // éxito o error
-  const [tipoMensaje, setTipoMensaje] = useState(""); // "exito" o "error"
+  const [mensaje, setMensaje] = useState(null);
+  const [tipoMensaje, setTipoMensaje] = useState("");
 
   const handleChange = (e) => {
+    const { name, value } = e.target;
+
+    // Validamos que el valor sea un número entero positivo o vacío
+    if (name === "stock" && value !== "" && !/^\d+$/.test(value)) {
+      return; // No actualizamos si no es un número entero positivo
+    }
+
     setMercaderia({
       ...mercaderia,
-      [e.target.name]: e.target.value,
+      [name]: value, // Si es un valor válido, se actualiza
     });
   };
 
@@ -22,7 +30,6 @@ const AgregarMercaderia = ({ handleBackMercaderia }) => {
     e.preventDefault();
 
     try {
-      // Verificamos si el código ya existe
       const verificar = await fetch("http://localhost:3000/mercaderia");
       const lista = await verificar.json();
       const existe = lista.some(
@@ -36,12 +43,23 @@ const AgregarMercaderia = ({ handleBackMercaderia }) => {
         return;
       }
 
+      // Asegurarse de enviar stock como 0 si está vacío
+      const mercaderiaConStock = {
+        ...mercaderia,
+        stock:
+          mercaderia.stock === undefined ||
+          mercaderia.stock === "" ||
+          isNaN(mercaderia.stock)
+            ? 0
+            : parseInt(mercaderia.stock),
+      };
+
       const response = await fetch("http://localhost:3000/mercaderia", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify(mercaderia),
+        body: JSON.stringify(mercaderiaConStock),
       });
 
       if (!response.ok) {
@@ -55,6 +73,7 @@ const AgregarMercaderia = ({ handleBackMercaderia }) => {
         codigo: "",
         Nombre: "",
         Precio: "",
+        stock: "", // Para que el input quede vacío
       });
 
       setMensaje("✅ Producto agregado exitosamente");
@@ -84,7 +103,7 @@ const AgregarMercaderia = ({ handleBackMercaderia }) => {
 
       <form onSubmit={handleSubmit}>
         <label>
-          Codigo:
+          Código:
           <input
             type="text"
             name="codigo"
@@ -115,6 +134,20 @@ const AgregarMercaderia = ({ handleBackMercaderia }) => {
             required
           />
         </label>
+        <br />
+        <label>
+          Stock:
+          <input
+            type="number"
+            name="stock"
+            value={mercaderia.stock}
+            onChange={handleChange}
+            min="0"
+            step="1"
+            placeholder="0"
+          />
+        </label>
+
         <br />
 
         <div className="button-container">

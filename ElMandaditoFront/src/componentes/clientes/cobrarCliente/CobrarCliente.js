@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import axios from "axios";
 import { obtenerFechaActual, procesarCaja } from "../../funciones";
 import "./cobrarCliente.css";
@@ -10,10 +10,13 @@ const CobrarCliente = ({ handleBack, selectedCliente }) => {
   const [productosSeleccionados, setProductosSeleccionados] = useState([]);
 
   const calcularTotal = () => {
-    return datosMercaderia.reduce(
-      (total, mercaderia) => total + parseFloat(mercaderia.precio),
-      0
-    );
+    const total = datosMercaderia.reduce((acum, mercaderia) => {
+      const precio = parseFloat(mercaderia.precio) || 0;
+      const cantidad = parseFloat(mercaderia.cantidad) || 0;
+      return acum + precio * cantidad;
+    }, 0);
+
+    return total.toFixed(2).replace(/\.00$/, "");
   };
 
   const realizarCobroTotal = async (valor) => {
@@ -43,6 +46,11 @@ const CobrarCliente = ({ handleBack, selectedCliente }) => {
   };
 
   const realizarCobroParcial = async (valor) => {
+    if (!productosSeleccionados || productosSeleccionados.length === 0) {
+      alert("No hay productos seleccionados.");
+      return;
+    }
+
     const disponibles = datosMercaderia.filter((m) =>
       productosSeleccionados.includes(m)
     );
@@ -51,89 +59,61 @@ const CobrarCliente = ({ handleBack, selectedCliente }) => {
     const seleccionParaCobrar = [];
     const idsClienteMercaderiaSeleccionados = [];
     const clienteID = selectedCliente.ClienteID;
-    const usadosPorCodigo = {};
 
-    let i = 0;
-    for (; i < disponibles.length; i++) {
-      const producto = disponibles[i];
-
+    for (const producto of disponibles) {
       if (
         !producto ||
-        typeof producto.precio !== "number" ||
+        isNaN(parseFloat(producto.precio)) ||
+        isNaN(parseFloat(producto.cantidad)) ||
         !producto.codigo
-      ) {
+      )
         continue;
-      }
 
-      const precio = producto.precio;
+      const precioUnitario = parseFloat(producto.precio);
+      const cantidadTotal = parseFloat(producto.cantidad);
+      const totalProducto = precioUnitario * cantidadTotal;
 
-      if (acumulado + precio <= valor) {
-        seleccionParaCobrar.push(producto);
-        acumulado += precio;
+      if (acumulado + totalProducto <= valor) {
+        acumulado += totalProducto;
+        seleccionParaCobrar.push({ ...producto });
 
         try {
           const response = await axios.get(
             `http://localhost:3000/cliente_mercaderia/${clienteID}/mercaderias/${producto.codigo}/ids`
           );
-
           const idsDisponibles = response.data || [];
+          idsClienteMercaderiaSeleccionados.push(...idsDisponibles);
+        } catch (error) {}
+      } else break;
 
-          if (!usadosPorCodigo[producto.codigo]) {
-            usadosPorCodigo[producto.codigo] = 0;
-          }
-
-          const index = usadosPorCodigo[producto.codigo];
-
-          if (index < idsDisponibles.length) {
-            idsClienteMercaderiaSeleccionados.push(idsDisponibles[index]);
-            usadosPorCodigo[producto.codigo] += 1;
-          }
-        } catch (error) {
-          console.error(
-            `Error al obtener ID de cliente_mercaderia para código ${producto.codigo}:`,
-            error
-          );
-        }
-      } else {
-        break;
-      }
+      if (acumulado >= valor) break;
     }
 
-    // Vuelta extra para cubrir diferencia si falta poco
-    if (acumulado < valor && i < disponibles.length) {
-      const productoExtra = disponibles[i];
+    if (acumulado < valor) {
+      const productoExtra = disponibles.find(
+        (p) => !seleccionParaCobrar.some((sel) => sel.codigo === p.codigo)
+      );
 
       if (
         productoExtra &&
-        typeof productoExtra.precio === "number" &&
+        !isNaN(parseFloat(productoExtra.precio)) &&
+        !isNaN(parseFloat(productoExtra.cantidad)) &&
         productoExtra.codigo
       ) {
-        seleccionParaCobrar.push(productoExtra);
-        acumulado += productoExtra.precio;
+        const precioUnitario = parseFloat(productoExtra.precio);
+        const cantidadTotal = parseFloat(productoExtra.cantidad);
+        const totalProducto = precioUnitario * cantidadTotal;
+
+        acumulado += totalProducto;
+        seleccionParaCobrar.push({ ...productoExtra });
 
         try {
           const response = await axios.get(
             `http://localhost:3000/cliente_mercaderia/${clienteID}/mercaderias/${productoExtra.codigo}/ids`
           );
-
           const idsDisponibles = response.data || [];
-
-          if (!usadosPorCodigo[productoExtra.codigo]) {
-            usadosPorCodigo[productoExtra.codigo] = 0;
-          }
-
-          const index = usadosPorCodigo[productoExtra.codigo];
-
-          if (index < idsDisponibles.length) {
-            idsClienteMercaderiaSeleccionados.push(idsDisponibles[index]);
-            usadosPorCodigo[productoExtra.codigo] += 1;
-          }
-        } catch (error) {
-          console.error(
-            `Error al obtener ID de cliente_mercaderia para código ${productoExtra.codigo}:`,
-            error
-          );
-        }
+          idsClienteMercaderiaSeleccionados.push(...idsDisponibles);
+        } catch (error) {}
       }
     }
 
@@ -154,66 +134,61 @@ const CobrarCliente = ({ handleBack, selectedCliente }) => {
         );
       }
 
-      // Registrar en caja
       await procesarCaja(metodoPago, valor, obtenerFechaActual);
-
       setValorIngresado("");
-    } catch (error) {
-      console.error("Error al procesar el cobro parcial:", error);
-      alert("Hubo un error al procesar el cobro.");
-    }
 
-    if (diferencia > 0) {
       const fecha = obtenerFechaActual();
-      const codigoCredito = `${diferencia}${fecha}`;
-      const nombreCredito = `Resto del pago efectuado el ${fecha}`;
 
-      try {
-        await axios.get(
-          `http://localhost:3000/mercaderia/codigo/${codigoCredito}`
-        );
-        console.log(
-          `Ya existe una mercadería con el código ${codigoCredito}. No se creará otra.`
-        );
-      } catch (error) {
-        if (error.response && error.response.status === 404) {
-          try {
-            await axios.post("http://localhost:3000/mercaderia", {
-              codigo: codigoCredito,
-              Nombre: nombreCredito,
-              Precio: diferencia,
-            });
-            console.log("Nueva mercadería creada con éxito.");
-          } catch (postError) {
-            console.error("Error al crear mercadería:", postError);
-            alert("No se pudo registrar el crédito.");
+      if (diferencia > 0) {
+        const codigoCredito = `${diferencia}${fecha}`;
+        const nombreCredito = `Resto del pago efectuado el ${fecha}`;
+
+        try {
+          await axios.get(
+            `http://localhost:3000/mercaderia/codigo/${codigoCredito}`
+          );
+        } catch (error) {
+          if (error.response && error.response.status === 404) {
+            try {
+              await axios.post("http://localhost:3000/mercaderia", {
+                codigo: codigoCredito,
+                Nombre: nombreCredito,
+                Precio: diferencia,
+              });
+            } catch (postError) {
+              alert("No se pudo registrar el crédito.");
+              return;
+            }
+          } else {
+            alert("Hubo un error al verificar si el crédito ya existe.");
             return;
           }
-        } else {
-          console.error("Error al verificar la existencia del crédito:", error);
-          alert("Hubo un error al verificar si el crédito ya existe.");
+        }
+
+        try {
+          await axios.post("http://localhost:3000/cliente_mercaderia", {
+            ClienteID: clienteID,
+            codigo: codigoCredito,
+            cantidad: 1,
+            fecha: fecha,
+          });
+        } catch (vinculoError) {
+          alert("Error al asociar el crédito al cliente.");
           return;
         }
       }
 
-      try {
-        await axios.post("http://localhost:3000/cliente_mercaderia", {
-          ClienteID: clienteID,
-          codigo: codigoCredito,
-          fecha: fecha,
-        });
-
-        await fetchData(); // Actualizar vista
-      } catch (vinculoError) {
-        console.error("Error al vincular crédito al cliente:", vinculoError);
-        alert("Error al asociar el crédito al cliente.");
-      }
+      // 👇 Siempre refrescar datos, sin importar si hubo o no diferencia
+      await fetchData();
+    } catch (error) {
+      console.error("Error al procesar el cobro parcial:", error);
+      alert("Hubo un error al procesar el cobro.");
     }
   };
 
   const handleCobrar = async (valor) => {
     if (!metodoPago) {
-      alert("Debe seleccionar un método de pago.");
+      alert("Debe seleccionar una forma de pago.");
       return;
     }
 
@@ -233,7 +208,7 @@ const CobrarCliente = ({ handleBack, selectedCliente }) => {
     setMetodoPago("");
   };
 
-  const fetchData = async () => {
+  const fetchData = useCallback(async () => {
     try {
       const clienteID = selectedCliente.ClienteID;
       const response = await fetch(
@@ -245,11 +220,11 @@ const CobrarCliente = ({ handleBack, selectedCliente }) => {
     } catch (error) {
       console.error("Error al obtener datos de mercadería:", error.message);
     }
-  };
+  }, [selectedCliente.ClienteID]);
 
   useEffect(() => {
     fetchData();
-  }, [selectedCliente.ClienteID]);
+  }, [fetchData]);
 
   return (
     <div className="container">
@@ -262,7 +237,7 @@ const CobrarCliente = ({ handleBack, selectedCliente }) => {
         <thead>
           <tr>
             <th>Fecha</th>
-            <th>Nombre</th>
+            <th>Producto (cantidad)</th>
             <th>Precio</th>
           </tr>
         </thead>
@@ -270,8 +245,19 @@ const CobrarCliente = ({ handleBack, selectedCliente }) => {
           {datosMercaderia.map((mercaderia, index) => (
             <tr key={index}>
               <td>{mercaderia.fecha}</td>
-              <td>{mercaderia.Nombre}</td>
-              <td>$ {mercaderia.precio}</td>
+              <td>
+                {mercaderia.Nombre} (
+                {parseFloat(mercaderia.cantidad)
+                  .toString()
+                  .replace(/\.00$/, "")}
+                )
+              </td>
+              <td>
+                $
+                {(mercaderia.precio * mercaderia.cantidad)
+                  .toFixed(2)
+                  .replace(/\.00$/, "")}
+              </td>
             </tr>
           ))}
         </tbody>
@@ -281,6 +267,7 @@ const CobrarCliente = ({ handleBack, selectedCliente }) => {
         <h4>Deuda Total: $ {calcularTotal()}</h4>
 
         <div className="metodo-pago">
+          <h6>Forma de pago</h6>
           <label>
             <input
               type="radio"
@@ -315,14 +302,13 @@ const CobrarCliente = ({ handleBack, selectedCliente }) => {
 
         <hr />
 
-        <label>Entrega:</label>
-        <input
-          type="number"
-          value={valorIngresado}
-          onChange={(e) => setValorIngresado(e.target.value)}
-        />
-
         <div className="button-container">
+          <label>Entrega:</label>
+          <input
+            type="number"
+            value={valorIngresado}
+            onChange={(e) => setValorIngresado(e.target.value)}
+          />
           <button
             type="button"
             disabled={!valorIngresado}
@@ -330,7 +316,7 @@ const CobrarCliente = ({ handleBack, selectedCliente }) => {
               const valor = parseFloat(valorIngresado);
               if (!metodoPago) {
                 alert(
-                  "Por favor, seleccione un método de pago antes de cobrar."
+                  "Por favor, seleccione una forma de pago antes de cobrar."
                 );
                 return;
               }

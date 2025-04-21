@@ -5,7 +5,8 @@ import { ClienteMercaderia } from '../../cliente_mercaderia/entities/cliente_mer
 export class Mercaderia {
   @PrimaryColumn()
   codigo: string;
-
+  @Column()
+  stock: number;
   @Column()
   Nombre: string;
 
@@ -18,8 +19,9 @@ export class Mercaderia {
   )
   clienteMercaderias: ClienteMercaderia[];
 
-  constructor(codigo: string, Nombre: string, Precio: number) {
+  constructor(codigo: string, stock: number, Nombre: string, Precio: number) {
     this.codigo = codigo;
+    this.stock = stock;
     this.Nombre = Nombre;
     this.Precio = Precio;
   }

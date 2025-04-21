@@ -1,5 +1,9 @@
 import React, { useState, useEffect } from "react";
-import { obtenerFechaActual, procesarCaja } from "../funciones";
+import {
+  obtenerFechaActual,
+  procesarCaja,
+  actualizarStockDespuesVenta,
+} from "../funciones";
 import "./venta.css";
 /* import jsPDF from "jspdf"; no lo usamos en este programa */
 
@@ -45,10 +49,8 @@ const Ventas = ({ handleBackInicio }) => {
         if (response.ok) {
           const producto = await response.json();
           // Agregar el producto seleccionado a la lista de productos
-          setProductosSeleccionados((prevProductos) => [
-            producto,
-            ...prevProductos,
-          ]);
+          handleAgregarProducto({ ...producto, cantidad: 1 });
+
           // Limpiar el código de búsqueda después de agregar el producto
           setBusquedaCodigo("");
         } else {
@@ -109,6 +111,33 @@ const Ventas = ({ handleBackInicio }) => {
     }
   }, [busquedaNombre, todosLosProductos, mostrarSugerencias]);
 
+  const handleAgregarProducto = (productoNuevo) => {
+    const cantidadNueva = productoNuevo.cantidad || 1;
+
+    setProductosSeleccionados((prevProductos) => {
+      const indexExistente = prevProductos.findIndex(
+        (p) => p.codigo === productoNuevo.codigo
+      );
+
+      if (indexExistente !== -1) {
+        // Si ya existe, sumamos la cantidad
+        const productosActualizados = [...prevProductos];
+        const cantidadExistente =
+          parseFloat(productosActualizados[indexExistente].cantidad) || 1;
+
+        productosActualizados[indexExistente] = {
+          ...productosActualizados[indexExistente],
+          cantidad: cantidadExistente + cantidadNueva,
+        };
+
+        return productosActualizados;
+      } else {
+        // Si no existe, lo agregamos al principio
+        return [productoNuevo, ...prevProductos];
+      }
+    });
+  };
+
   const handleFiadoClick = () => {
     setMostrarClientes((prev) => !prev);
   };
@@ -123,7 +152,8 @@ const Ventas = ({ handleBackInicio }) => {
         cantidad: 1,
       };
 
-      setProductosSeleccionados([nuevoProducto, ...productosSeleccionados]);
+      handleAgregarProducto(nuevoProducto);
+
       setPrecioIngresado(""); // Limpiar input
     }
   };
@@ -151,10 +181,7 @@ const Ventas = ({ handleBackInicio }) => {
         const producto = productos.find((p) => p.Nombre === nombre);
 
         if (producto) {
-          setProductosSeleccionados([
-            { ...producto, Nombre: nombre },
-            ...productosSeleccionados,
-          ]);
+          handleAgregarProducto({ ...producto, cantidad: 1 });
 
           setBusquedaNombre("");
           setSugerenciasNombres([]);
@@ -195,9 +222,12 @@ const Ventas = ({ handleBackInicio }) => {
   };
 
   const handleCantidadChange = (e, index) => {
-    const updatedProductos = [...productosSeleccionados];
-    updatedProductos[index].cantidad = parseInt(e.target.value, 10);
-    setProductosSeleccionados(updatedProductos);
+    const valor = e.target.value;
+
+    const nuevosProductos = [...productosSeleccionados];
+    // Permitimos string vacío para que el usuario pueda borrar
+    nuevosProductos[index].cantidad = valor === "" ? "" : parseFloat(valor);
+    setProductosSeleccionados(nuevosProductos);
   };
 
   const handleClienteSeleccionado = (id) => {
@@ -242,28 +272,29 @@ const Ventas = ({ handleBackInicio }) => {
               codigosRegistrados.push(codigoGenerado);
             }
           }
+
           // Código para registrar en cliente_mercaderia
           const codigoClienteMercaderia =
             producto.Nombre === "-"
               ? `${producto.Precio}00000`
               : producto.codigo;
 
-          // POST por cada unidad
-          for (let i = 0; i < cantidad; i++) {
-            await fetch("http://localhost:3000/cliente_mercaderia", {
-              method: "POST",
-              headers: {
-                "Content-Type": "application/json",
-              },
-              body: JSON.stringify({
-                ClienteID: clienteSeleccionadoId,
-                codigo: codigoClienteMercaderia,
-                fecha: fechaHoy,
-              }),
-            });
-          }
+          // Nuevo POST con cantidad incluida
+          await fetch("http://localhost:3000/cliente_mercaderia", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              ClienteID: clienteSeleccionadoId,
+              codigo: codigoClienteMercaderia,
+              fecha: fechaHoy,
+              cantidad: cantidad,
+            }),
+          });
         }
         await procesarCaja("fiado", calcularTotal(), obtenerFechaActual);
+        await actualizarStockDespuesVenta(productosSeleccionados);
 
         // Limpiar la tabla y ocultar clientes
         setProductosSeleccionados([]);
@@ -381,10 +412,14 @@ const Ventas = ({ handleBackInicio }) => {
         {/* Contador de productos seleccionados */}
         <p>
           Total de productos:{" "}
-          {productosSeleccionados.reduce(
-            (total, prod) => total + (parseInt(prod.cantidad) || 1),
-            0
-          )}
+          {productosSeleccionados.reduce((total, prod) => {
+            const cant = parseFloat(prod.cantidad);
+            if (Number.isInteger(cant)) {
+              return total + Math.abs(cant);
+            } else {
+              return total + 1;
+            }
+          }, 0)}
         </p>
       </div>
 
@@ -401,20 +436,23 @@ const Ventas = ({ handleBackInicio }) => {
         </thead>
         <tbody>
           {productosSeleccionados.map((producto, index) => {
-            const cantidad = producto.cantidad || 1;
-            const total = cantidad * producto.Precio;
+            const cantidad = parseFloat(producto.cantidad) || 1;
+
+            const total = Math.round(cantidad * producto.Precio * 100) / 100;
 
             return (
               <tr key={index}>
                 <td>
                   <input
                     type="number"
-                    min="1"
-                    value={cantidad}
+                    min="0.05"
+                    step="0.05"
+                    value={producto.cantidad}
                     onChange={(e) => handleCantidadChange(e, index)}
-                    style={{ width: "50px", textAlign: "center" }}
+                    style={{ width: "60px", textAlign: "center" }}
                   />
                 </td>
+
                 <td>{producto.Nombre}</td>
                 <td>$ {producto.Precio}</td>
                 <td>$ {total}</td>
@@ -441,6 +479,7 @@ const Ventas = ({ handleBackInicio }) => {
             type="button"
             onClick={() => {
               procesarCaja("efectivo", calcularTotal(), obtenerFechaActual);
+              actualizarStockDespuesVenta(productosSeleccionados);
               setProductosSeleccionados([]);
             }}
             disabled={calcularTotal() === 0}
@@ -451,6 +490,7 @@ const Ventas = ({ handleBackInicio }) => {
             type="button"
             onClick={() => {
               procesarCaja("cuentaDni", calcularTotal(), obtenerFechaActual);
+              actualizarStockDespuesVenta(productosSeleccionados);
               setProductosSeleccionados([]);
             }}
             disabled={calcularTotal() === 0}

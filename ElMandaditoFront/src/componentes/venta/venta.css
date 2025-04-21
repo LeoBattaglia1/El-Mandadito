@@ -68,7 +68,7 @@ input[type="text"] {
   margin-left: auto;
   margin-right: auto;
   border-collapse: collapse;
-  margin-top: 20px;
+  margin-top: 0px;
 }
 
 /* Estilos para las celdas de la última columna */
@@ -120,7 +120,7 @@ input[type="text"] {
   position: absolute;
   border-radius: 10px;
   border: solid;
-  top: 260px;
+  top: 280px;
   left: 550px;
   font-size: 32px;
   width: 300px;
@@ -170,7 +170,7 @@ button {
 .tabla-clientes {
   position: absolute;
   right: 140px;
-  top: 240px;
+  top: 260px;
   width: 20%;
   margin-left: auto;
   margin-right: auto;
@@ -179,12 +179,23 @@ button {
 }
 
 .tabla-clientes {
-  background-color: green;
+  background-color: grey;
   color: #fff;
-  padding: 10px;
+  padding: 5px;
   font-size: 22px;
 }
 
+.tabla-clientes h2 {
+  margin: auto;
+  padding-left: 20px;
+}
+
+.tabla-clientes button {
+  margin: auto;
+  margin-top: 10px;
+  width: 100%;
+  background-color: #ff9800;
+}
 /* Estilos para las filas de la tabla */
 .tabla-clientes tr {
   border-bottom: 1px solid;

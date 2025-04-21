@@ -1,24 +1,19 @@
 import React, { useState, useEffect } from "react";
-import { FaCalendarAlt, FaClock } from "react-icons/fa";
+import Clock from "react-clock";
+import Calendar from "react-calendar";
+import "react-clock/dist/Clock.css";
+import "react-calendar/dist/Calendar.css";
 import "./inicio.css";
 
 const Inicio = ({ mostrar }) => {
-  const [horaActual, setHoraActual] = useState("");
+  const [horaActual, setHoraActual] = useState(new Date());
   const [mostrarModal, setMostrarModal] = useState(false);
   const [inputPassword, setInputPassword] = useState("");
   const [errorPassword, setErrorPassword] = useState("");
 
   useEffect(() => {
-    const obtenerHora = () => {
-      const ahora = new Date();
-      return ahora.toLocaleTimeString("es-AR", {
-        hour: "2-digit",
-        minute: "2-digit",
-      });
-    };
-
     const intervalo = setInterval(() => {
-      setHoraActual(obtenerHora());
+      setHoraActual(new Date());
     }, 1000);
 
     return () => clearInterval(intervalo);
@@ -58,19 +53,10 @@ const Inicio = ({ mostrar }) => {
 
       <div className="column derecha">
         <div className="calendarioGrande">
-          <FaCalendarAlt size={36} style={{ marginRight: "10px" }} />
-          <span className="textoCalendario">
-            {new Date().toLocaleDateString("es-AR", {
-              weekday: "long",
-              year: "numeric",
-              month: "long",
-              day: "numeric",
-            })}
-          </span>
+          <Calendar value={horaActual} />
         </div>
         <div className="relojGrande">
-          <FaClock size={36} style={{ marginRight: "10px" }} />
-          <span className="textoReloj">{horaActual}</span>
+          <Clock value={horaActual} />
         </div>
       </div>
 
@@ -81,6 +67,7 @@ const Inicio = ({ mostrar }) => {
       {mostrarModal && (
         <div className="modal-password">
           <div className="modal-contenido">
+            <h2>CAJA</h2>
             <h3>Acceso restringido</h3>
             <input
               type="password"

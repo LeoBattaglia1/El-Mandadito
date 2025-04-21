@@ -13,8 +13,9 @@ exports.Mercaderia = void 0;
 const typeorm_1 = require("typeorm");
 const cliente_mercaderia_entity_1 = require("../../cliente_mercaderia/entities/cliente_mercaderia.entity");
 let Mercaderia = class Mercaderia {
-    constructor(codigo, Nombre, Precio) {
+    constructor(codigo, stock, Nombre, Precio) {
         this.codigo = codigo;
+        this.stock = stock;
         this.Nombre = Nombre;
         this.Precio = Precio;
     }
@@ -43,6 +44,10 @@ __decorate([
 ], Mercaderia.prototype, "codigo", void 0);
 __decorate([
     (0, typeorm_1.Column)(),
+    __metadata("design:type", Number)
+], Mercaderia.prototype, "stock", void 0);
+__decorate([
+    (0, typeorm_1.Column)(),
     __metadata("design:type", String)
 ], Mercaderia.prototype, "Nombre", void 0);
 __decorate([
@@ -55,5 +60,5 @@ __decorate([
 ], Mercaderia.prototype, "clienteMercaderias", void 0);
 exports.Mercaderia = Mercaderia = __decorate([
     (0, typeorm_1.Entity)(),
-    __metadata("design:paramtypes", [String, String, Number])
+    __metadata("design:paramtypes", [String, Number, String, Number])
 ], Mercaderia);

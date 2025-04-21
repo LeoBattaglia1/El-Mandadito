@@ -14,9 +14,10 @@ const typeorm_1 = require("typeorm");
 const clientes_entity_1 = require("../../clientes/entities/clientes.entity");
 const mercaderia_entity_1 = require("../../mercaderia/entities/mercaderia.entity");
 let ClienteMercaderia = class ClienteMercaderia {
-    constructor(cliente, mercaderia, fecha) {
+    constructor(cliente, mercaderia, cantidad, fecha) {
         this.cliente = cliente;
         this.mercaderia = mercaderia;
+        this.cantidad = cantidad;
         this.fecha = fecha;
     }
 };
@@ -36,10 +37,15 @@ __decorate([
     __metadata("design:type", mercaderia_entity_1.Mercaderia)
 ], ClienteMercaderia.prototype, "mercaderia", void 0);
 __decorate([
+    (0, typeorm_1.Column)('decimal', { precision: 10, scale: 2 }),
+    __metadata("design:type", Number)
+], ClienteMercaderia.prototype, "cantidad", void 0);
+__decorate([
     (0, typeorm_1.Column)({ type: 'date' }),
     __metadata("design:type", Date)
 ], ClienteMercaderia.prototype, "fecha", void 0);
 exports.ClienteMercaderia = ClienteMercaderia = __decorate([
     (0, typeorm_1.Entity)(),
-    __metadata("design:paramtypes", [clientes_entity_1.Clientes, mercaderia_entity_1.Mercaderia, Date])
+    __metadata("design:paramtypes", [clientes_entity_1.Clientes,
+        mercaderia_entity_1.Mercaderia, Number, Date])
 ], ClienteMercaderia);

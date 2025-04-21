@@ -4,6 +4,7 @@ export declare class ClienteMercaderia {
     id: number;
     cliente: Clientes;
     mercaderia: Mercaderia;
+    cantidad: number;
     fecha: Date;
-    constructor(cliente: Clientes, mercaderia: Mercaderia, fecha: Date);
+    constructor(cliente: Clientes, mercaderia: Mercaderia, cantidad: number, fecha: Date);
 }

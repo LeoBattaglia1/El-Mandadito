@@ -21,12 +21,21 @@ export class ClienteMercaderia {
   @JoinColumn({ name: 'codigo' })
   mercaderia: Mercaderia;
 
+  @Column('decimal', { precision: 10, scale: 2 })
+  cantidad: number;
+
   @Column({ type: 'date' })
   fecha: Date;
 
-  constructor(cliente: Clientes, mercaderia: Mercaderia, fecha: Date) {
+  constructor(
+    cliente: Clientes,
+    mercaderia: Mercaderia,
+    cantidad: number,
+    fecha: Date,
+  ) {
     this.cliente = cliente;
     this.mercaderia = mercaderia;
+    this.cantidad = cantidad;
     this.fecha = fecha;
   }
 }

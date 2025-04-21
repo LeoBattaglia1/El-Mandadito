@@ -13,9 +13,15 @@ export class ClienteMercaderiaController {
   async create(
     @Body('ClienteID') clienteID: number,
     @Body('codigo') codigo: string,
+    @Body('cantidad') cantidad: number,
     @Body('fecha') fecha: Date,
   ): Promise<ClienteMercaderia> {
-    return this.clienteMercaderiaService.create(clienteID, codigo, fecha);
+    return this.clienteMercaderiaService.create(
+      clienteID,
+      codigo,
+      cantidad,
+      fecha,
+    );
   }
 
   @Get()
