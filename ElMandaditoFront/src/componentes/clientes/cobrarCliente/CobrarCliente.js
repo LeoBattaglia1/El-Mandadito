@@ -33,8 +33,7 @@ const CobrarCliente = ({ handleBack, selectedCliente }) => {
         `http://localhost:3000/cliente_mercaderia/eliminar/${clienteID}`
       );
 
-      // Registrar en caja
-      await procesarCaja(metodoPago, valor, obtenerFechaActual);
+      await procesarCaja(metodoPago, Number(valor), obtenerFechaActual);
 
       alert(`Se cobraron $${valor} en ${metodoPago.toUpperCase()}`);
       setDatosMercaderia([]);
@@ -286,7 +285,7 @@ const CobrarCliente = ({ handleBack, selectedCliente }) => {
               checked={metodoPago === "cuentaDni"}
               onChange={() => setMetodoPago("cuentaDni")}
             />
-            Cuenta DNI
+            Pago digital
           </label>
         </div>
 

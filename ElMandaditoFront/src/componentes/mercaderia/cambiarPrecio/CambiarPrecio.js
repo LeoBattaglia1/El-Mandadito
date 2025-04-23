@@ -60,7 +60,7 @@ const CambiarPrecio = ({ handleBackMercaderia, selectedMercaderia }) => {
       setTimeout(() => {
         setAlerta(null);
         handleBackMercaderia();
-      }, 1000);
+      }, 250);
     } catch (error) {
       console.error("Error durante la solicitud:", error);
     }

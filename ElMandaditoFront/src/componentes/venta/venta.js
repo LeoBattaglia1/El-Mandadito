@@ -494,14 +494,14 @@ const Ventas = ({ handleBackInicio }) => {
             }}
             disabled={calcularTotal() === 0}
           >
-            Cuenta DNI
+            Pago virtual
           </button>
           <button
             type="button"
             onClick={handleFiadoClick}
             disabled={calcularTotal() === 0}
           >
-            Fiado
+            Cuenta
           </button>
         </div>
       </div>

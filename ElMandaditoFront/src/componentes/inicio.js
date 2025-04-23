@@ -5,8 +5,8 @@ import "react-clock/dist/Clock.css";
 import "react-calendar/dist/Calendar.css";
 import ventaImg from "../imagenes/venta .png";
 import clientesImg from "../imagenes/clientes.png";
-/* import mercaderiaImg from "../imagenes/mercaderia.png";
- */
+import mercaderiaImg from "../imagenes/mercaderia.png";
+
 import "./inicio.css";
 
 const Inicio = ({ mostrar }) => {
@@ -30,7 +30,7 @@ const Inicio = ({ mostrar }) => {
   };
 
   const verificarPassword = () => {
-    if (inputPassword === "123") {
+    if (inputPassword === "1998") {
       setMostrarModal(false);
       mostrar("calendarioCaja");
     } else {
@@ -51,7 +51,7 @@ const Inicio = ({ mostrar }) => {
           onClick={() => mostrar("mercaderia")}
           className="buttonMercaderia"
         >
-          <img src={ventaImg} alt="Mercadería" className="icono-boton" />
+          <img src={mercaderiaImg} alt="Mercadería" className="icono-boton" />
         </button>
       </div>
 

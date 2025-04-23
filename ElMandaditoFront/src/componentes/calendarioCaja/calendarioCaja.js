@@ -94,26 +94,38 @@ const CalendarioCaja = ({ handleBackInicio }) => {
           <tr>
             <th>Fecha</th>
             <th>Efectivo</th>
-            <th>Cuenta DNI</th>
+            <th>Pago virtual</th>
             <th>Total</th>
             <th>Fiado</th>
           </tr>
         </thead>
         <tbody>
-          {datosFiltrados.map((caja, index) => {
-            const total = (caja.efectivo || 0) + (caja.cuenta_dni || 0);
-            return (
-              <tr key={index}>
-                <td>{moment(caja.fecha).format("DD-MM-YYYY")}</td>
-                <td>${caja.efectivo || 0}</td>
-                <td>${caja.cuenta_dni || 0}</td>
-                <td>
-                  <strong>${total}</strong>
-                </td>
-                <td>${caja.fiado || 0}</td>
-              </tr>
-            );
-          })}
+          {datosFiltrados.length > 0 ? (
+            datosFiltrados.map((caja, index) => {
+              const total = (caja.efectivo || 0) + (caja.cuenta_dni || 0);
+              return (
+                <tr key={index}>
+                  <td>{moment(caja.fecha).format("DD-MM-YYYY")}</td>
+                  <td>${caja.efectivo || 0}</td>
+                  <td>${caja.cuenta_dni || 0}</td>
+                  <td>
+                    <strong>${total}</strong>
+                  </td>
+                  <td>${caja.fiado || 0}</td>
+                </tr>
+              );
+            })
+          ) : (
+            <tr>
+              <td>{moment(fechaSeleccionada).format("DD-MM-YYYY")}</td>
+              <td>$0</td>
+              <td>$0</td>
+              <td>
+                <strong>$0</strong>
+              </td>
+              <td>$0</td>
+            </tr>
+          )}
         </tbody>
       </table>
 

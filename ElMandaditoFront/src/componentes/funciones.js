@@ -53,18 +53,47 @@ async function actualizarCaja(tipoPago, monto, fecha) {
   }
 }
 
-// Función para crear un nuevo registro en la caja
 async function crearNuevoRegistro(fecha, tipoPago, monto) {
   const url = "http://localhost:3000/caja";
 
-  // Crear un nuevo registro en la caja con la fecha y el monto correspondiente
-  await fetch(url, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({ fecha, tipoPago, monto }),
-  });
+  // Preparar todos los campos en 0
+  let efectivo = 0;
+  let cuenta_dni = 0;
+  let fiado = 0;
+
+  // Asignar el monto al campo correcto
+  if (tipoPago === "efectivo") {
+    efectivo = monto;
+  } else if (tipoPago === "cuentaDni") {
+    cuenta_dni = monto;
+  } else if (tipoPago === "fiado") {
+    fiado = monto;
+  }
+
+  const nuevoRegistro = {
+    fecha,
+    efectivo,
+    cuenta_dni,
+    fiado,
+  };
+
+  try {
+    const response = await fetch(url, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(nuevoRegistro),
+    });
+
+    const data = await response.json();
+    if (!response.ok)
+      throw new Error(data.message || "Error al crear el registro de caja");
+
+    console.log("✅ Nuevo registro creado correctamente:", data);
+  } catch (error) {
+    console.error("❌ Error al crear el nuevo registro:", error.message);
+  }
 }
 
 // funciones para actualizar stock
