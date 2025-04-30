@@ -21,14 +21,23 @@ const AgregarCliente = ({ handleBack }) => {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
+    // Validar que todos los campos estén completos
+    const { Nombre, Telefono, Direccion } = cliente;
+
+    if (!Nombre.trim() || !Telefono.trim() || !Direccion.trim()) {
+      setColorMensaje("red");
+      setMensaje("Todos los campos son obligatorios.");
+      setTimeout(() => setMensaje(null), 2000);
+      return;
+    }
+
     try {
-      // Verificar si ya existe un cliente con el mismo nombre
+      // Verificar si ya existe el cliente
       const responseExistente = await fetch("http://localhost:3000/clientes");
       const dataClientes = await responseExistente.json();
 
       const clienteExiste = dataClientes.some(
-        (c) =>
-          c.Nombre.trim().toLowerCase() === cliente.Nombre.trim().toLowerCase()
+        (c) => c.Nombre.trim().toLowerCase() === Nombre.trim().toLowerCase()
       );
 
       if (clienteExiste) {
@@ -38,7 +47,7 @@ const AgregarCliente = ({ handleBack }) => {
         return;
       }
 
-      // Si no existe, agregar el cliente
+      // Si no existe, lo agregamos
       const response = await fetch("http://localhost:3000/clientes", {
         method: "POST",
         headers: {
@@ -48,10 +57,10 @@ const AgregarCliente = ({ handleBack }) => {
       });
 
       if (!response.ok) {
-        console.error(
-          `Error de red: ${response.status} - ${response.statusText}`
-        );
-        throw new Error(`HTTP error! Status: ${response.status}`);
+        setColorMensaje("red");
+        setMensaje("No se pudo agregar el cliente.");
+        setTimeout(() => setMensaje(null), 2000);
+        return;
       }
 
       setColorMensaje("green");
@@ -67,7 +76,9 @@ const AgregarCliente = ({ handleBack }) => {
         handleBack();
       }, 2000);
     } catch (error) {
-      console.error("Error durante la solicitud:", error);
+      setColorMensaje("red");
+      setMensaje("No se pudo conectar con el servidor.");
+      setTimeout(() => setMensaje(null), 2000);
     }
   };
 

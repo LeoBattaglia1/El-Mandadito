@@ -214,10 +214,11 @@ const Ventas = ({ handleBackInicio }) => {
 
   // Función para calcular el total de los precios
   const calcularTotal = () => {
-    return productosSeleccionados.reduce((total, producto) => {
-      const cantidad = parseInt(producto.cantidad) || 1;
+    const total = productosSeleccionados.reduce((total, producto) => {
+      const cantidad = parseFloat(producto.cantidad) || 1;
       return total + cantidad * parseFloat(producto.Precio);
     }, 0);
+    return parseFloat(total.toFixed(2));
   };
 
   const handleCantidadChange = (e, index) => {
@@ -426,10 +427,10 @@ const Ventas = ({ handleBackInicio }) => {
       <table className="tabla-ventas">
         <thead>
           <tr>
-            <th style={{ width: "60px" }}>Cant</th>
+            <th style={{ width: "50px" }}>Cant</th>
             <th>Nombre</th>
             <th>Unidad</th>
-            <th>Total</th>
+            <th style={{ width: "80px" }}>Total</th>
             <th></th>
           </tr>
         </thead>

@@ -59,6 +59,9 @@ const CobrarCliente = ({ handleBack, selectedCliente }) => {
     const idsClienteMercaderiaSeleccionados = [];
     const clienteID = selectedCliente.ClienteID;
 
+    const usoPorCodigo = {}; // lleva cuenta cuántas veces usamos cada código
+    const cacheIDsPorCodigo = {}; // almacena los IDs disponibles por código
+
     for (const producto of disponibles) {
       if (
         !producto ||
@@ -72,49 +75,45 @@ const CobrarCliente = ({ handleBack, selectedCliente }) => {
       const cantidadTotal = parseFloat(producto.cantidad);
       const totalProducto = precioUnitario * cantidadTotal;
 
-      if (acumulado + totalProducto <= valor) {
+      if (acumulado < valor) {
         acumulado += totalProducto;
         seleccionParaCobrar.push({ ...producto });
 
-        try {
-          const response = await axios.get(
-            `http://localhost:3000/cliente_mercaderia/${clienteID}/mercaderias/${producto.codigo}/ids`
-          );
-          const idsDisponibles = response.data || [];
-          idsClienteMercaderiaSeleccionados.push(...idsDisponibles);
-        } catch (error) {}
-      } else break;
+        const codigo = producto.codigo;
+        usoPorCodigo[codigo] = (usoPorCodigo[codigo] || 0) + 1;
+
+        if (!cacheIDsPorCodigo[codigo]) {
+          try {
+            const response = await axios.get(
+              `http://localhost:3000/cliente_mercaderia/${clienteID}/mercaderias/${codigo}/ids`
+            );
+            cacheIDsPorCodigo[codigo] = response.data || [];
+            console.log(
+              `IDs encontrados para ${codigo}:`,
+              cacheIDsPorCodigo[codigo]
+            );
+          } catch (error) {
+            console.error(`Error obteniendo IDs de ${producto.codigo}`, error);
+            continue;
+          }
+        }
+
+        const index = usoPorCodigo[codigo] - 1;
+        const idSeleccionado = cacheIDsPorCodigo[codigo][index];
+        if (idSeleccionado) {
+          idsClienteMercaderiaSeleccionados.push(idSeleccionado);
+        } else {
+          console.warn(`No hay suficientes IDs para el código ${codigo}`);
+        }
+      }
 
       if (acumulado >= valor) break;
     }
 
-    if (acumulado < valor) {
-      const productoExtra = disponibles.find(
-        (p) => !seleccionParaCobrar.some((sel) => sel.codigo === p.codigo)
-      );
-
-      if (
-        productoExtra &&
-        !isNaN(parseFloat(productoExtra.precio)) &&
-        !isNaN(parseFloat(productoExtra.cantidad)) &&
-        productoExtra.codigo
-      ) {
-        const precioUnitario = parseFloat(productoExtra.precio);
-        const cantidadTotal = parseFloat(productoExtra.cantidad);
-        const totalProducto = precioUnitario * cantidadTotal;
-
-        acumulado += totalProducto;
-        seleccionParaCobrar.push({ ...productoExtra });
-
-        try {
-          const response = await axios.get(
-            `http://localhost:3000/cliente_mercaderia/${clienteID}/mercaderias/${productoExtra.codigo}/ids`
-          );
-          const idsDisponibles = response.data || [];
-          idsClienteMercaderiaSeleccionados.push(...idsDisponibles);
-        } catch (error) {}
-      }
-    }
+    console.log(
+      "IDs seleccionados para eliminar:",
+      idsClienteMercaderiaSeleccionados
+    );
 
     const diferencia = acumulado - valor;
 
@@ -177,7 +176,6 @@ const CobrarCliente = ({ handleBack, selectedCliente }) => {
         }
       }
 
-      // 👇 Siempre refrescar datos, sin importar si hubo o no diferencia
       await fetchData();
     } catch (error) {
       console.error("Error al procesar el cobro parcial:", error);

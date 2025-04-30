@@ -63,8 +63,8 @@ input[type="text"] {
 /* Estilos para la tabla de ventas */
 .tabla-ventas {
   position: relative;
-  right: 420px;
-  width: 35%;
+  right: 400px;
+  width: 42%;
   margin-left: auto;
   margin-right: auto;
   border-collapse: collapse;
@@ -121,9 +121,9 @@ input[type="text"] {
   border-radius: 10px;
   border: solid;
   top: 280px;
-  left: 550px;
-  font-size: 32px;
-  width: 300px;
+  left: 570px;
+  font-size: 30px;
+  width: 330px;
 }
 
 .parte-dos p {
